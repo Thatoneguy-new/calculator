@@ -41,8 +41,13 @@
             backdrop-filter: blur(12px);
             border: 1px solid #334155;
             border-radius: 0.75rem;
-            padding: 2rem;
+            padding: 1.5rem; /* Adjusted for mobile */
             animation: fadeIn 0.5s ease-in-out;
+        }
+        @media (min-width: 640px) {
+            .calculator-card {
+                padding: 2rem;
+            }
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -136,9 +141,9 @@
 </head>
 <body class="text-slate-300">
 
-    <div class="flex h-screen">
+    <div>
         <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="w-64 bg-slate-800/80 backdrop-blur-sm p-4 flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out md:translate-x-0">
+        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen bg-slate-800/80 backdrop-blur-sm p-4 overflow-y-auto transition-transform -translate-x-full md:translate-x-0">
             <h1 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                 <i class="ph-bold ph-calculator text-sky-400"></i>
                 Calculator Suite
@@ -149,16 +154,19 @@
         </aside>
 
         <!-- Mobile Menu Button -->
-        <button id="menu-toggle" class="fixed top-4 left-4 z-20 p-2 bg-slate-700 rounded-md md:hidden">
+        <button id="menu-toggle" class="fixed top-4 left-4 z-50 p-2 bg-slate-700 rounded-md md:hidden">
             <i class="ph ph-list text-white text-2xl"></i>
         </button>
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <main class="md:ml-64 p-4 sm:p-6 lg:p-8 transition-all duration-300">
             <div id="calculator-container" class="max-w-4xl mx-auto">
                 <!-- Calculator content will be injected here -->
             </div>
         </main>
+        
+        <!-- Overlay for mobile menu -->
+        <div id="overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
     </div>
 
     <script>
@@ -182,6 +190,7 @@
             const container = document.getElementById('calculator-container');
             const sidebar = document.getElementById('sidebar');
             const menuToggle = document.getElementById('menu-toggle');
+            const overlay = document.getElementById('overlay');
 
             function createCalculatorUI(id) {
                 const allContent = {
@@ -248,7 +257,18 @@
                     setupUnitConverter();
                     document.getElementById('unit_cat').addEventListener('change', setupUnitConverter);
                 }
-                if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                // Hide sidebar after selection on mobile
+                hideMobileMenu();
+            }
+
+            function showMobileMenu() {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+
+            function hideMobileMenu() {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
             }
 
             const categories = [...new Set(calculators.map(c => c.category))];
@@ -267,15 +287,10 @@
                 });
             });
 
-            menuToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth < 768 && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                    sidebar.classList.add('-translate-x-full');
-                }
-            });
+            menuToggle.addEventListener('click', showMobileMenu);
+            overlay.addEventListener('click', hideMobileMenu);
 
             switchCalculator('youtube');
-            if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
         });
 
         // --- Calculation Logic ---
@@ -486,4 +501,3 @@
     </script>
 </body>
 </html>
-
