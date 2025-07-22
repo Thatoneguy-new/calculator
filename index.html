@@ -22,7 +22,7 @@
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
+            background: linear-gradient(135deg, #0f172a, #131c31, #0f172a);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
         }
@@ -37,9 +37,9 @@
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
 
         .calculator-card {
-            background-color: rgba(30, 41, 59, 0.8); /* slate-800 with opacity */
-            backdrop-filter: blur(10px);
-            border: 1px solid #334155; /* slate-700 */
+            background-color: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid #334155;
             border-radius: 0.75rem;
             padding: 2rem;
             animation: fadeIn 0.5s ease-in-out;
@@ -56,9 +56,15 @@
             transition: all 0.2s ease-in-out;
             cursor: pointer;
         }
+        .nav-link i {
+            transition: color 0.2s ease-in-out;
+        }
         .nav-link:hover {
-            background-color: #334155; /* slate-700 */
+            background-color: #334155;
             transform: translateX(4px);
+        }
+        .nav-link:hover i {
+            color: #22d3ee;
         }
         .nav-link.active {
             background-image: linear-gradient(to right, #0ea5e9, #22d3ee);
@@ -73,12 +79,13 @@
             border-radius: 0.5rem;
             padding: 0.75rem 1rem;
             width: 100%;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
         }
         .form-input:focus {
             outline: none;
             border-color: #22d3ee;
             box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3);
+            transform: scale(1.02);
         }
         .btn-primary {
             background-image: linear-gradient(to right, #0ea5e9, #0284c7);
@@ -107,8 +114,23 @@
             animation: resultFadeIn 0.6s ease;
         }
         @keyframes resultFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        /* Animated Gradient Text Style */
+        .animated-gradient-text {
+            background: linear-gradient(to right, #38bdf8, #818cf8, #f472b6, #fb923c, #38bdf8);
+            background-size: 200% auto;
+            color: #000;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 4s linear infinite;
+        }
+        @keyframes textShine {
+            to {
+                background-position: -200% center;
+            }
         }
     </style>
 </head>
@@ -163,18 +185,50 @@
 
             function createCalculatorUI(id) {
                 const allContent = {
-                    simple: `<h2 class="text-3xl font-bold text-white mb-4">Simple Calculator</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="s_num1" class="form-input" placeholder="First number"><input type="number" id="s_num2" class="form-input" placeholder="Second number"></div><div class="flex justify-center gap-3 mt-4">${['+', '-', '*', '/'].map(op => `<button class="btn-primary w-16 h-16 text-2xl" onclick="calculateSimple('${op}')">${op}</button>`).join('')}</div><div id="s_result" class="result-box text-center text-3xl font-bold min-h-[80px] flex items-center justify-center"></div>`,
-                    scientific: `<h2 class="text-3xl font-bold text-white mb-4">Scientific Calculator</h2><select id="sci_op" class="form-input mb-4"><option value="sqrt">Square Root (√)</option><option value="pow">Power (x^y)</option><option value="sin">Sine (sin)</option><option value="cos">Cosine (cos)</option><option value="tan">Tangent (tan)</option><option value="log">Logarithm (log10)</option></select><div id="sci_inputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="sci_num1" class="form-input" placeholder="Enter number"><input type="number" id="sci_num2" class="form-input hidden" placeholder="Enter exponent"></div><button class="btn-primary mt-4 w-full" onclick="calculateScientific()">Calculate</button><div id="sci_result" class="result-box text-center text-3xl font-bold min-h-[80px] flex items-center justify-center"></div>`,
-                    simpleInterest: `<h2 class="text-3xl font-bold text-white mb-4">Simple Interest</h2><div class="space-y-4"><input type="number" id="si_p" class="form-input" placeholder="Principal Amount ($)"><input type="number" id="si_r" class="form-input" placeholder="Annual Rate (%)"><input type="number" id="si_t" class="form-input" placeholder="Time (Years)"></div><button class="btn-primary mt-4 w-full" onclick="calculateSimpleInterest()">Calculate</button><div id="si_result" class="result-box"></div>`,
-                    compoundInterest: `<h2 class="text-3xl font-bold text-white mb-4">Compound Interest</h2><div class="space-y-4"><input type="number" id="ci_p" class="form-input" placeholder="Principal Amount ($)"><input type="number" id="ci_r" class="form-input" placeholder="Annual Rate (%)"><input type="number" id="ci_t" class="form-input" placeholder="Time (Years)"><select id="ci_n" class="form-input"><option value="365">Daily</option><option value="12">Monthly</option><option value="1">Yearly</option></select></div><button class="btn-primary mt-4 w-full" onclick="calculateCompoundInterest()">Calculate</button><div id="ci_result" class="result-box"></div>`,
-                    age: `<h2 class="text-3xl font-bold text-white mb-4">Age Calculator</h2><label class="text-slate-400">Enter your date of birth:</label><input type="date" id="age_dob" class="form-input mt-2"><button class="btn-primary mt-4 w-full" onclick="calculateAge()">Calculate Age</button><div id="age_result" class="result-box"></div>`,
-                    countdown: `<h2 class="text-3xl font-bold text-white mb-4">Date Countdown</h2><label class="text-slate-400">Select a future date:</label><input type="date" id="cd_date" class="form-input mt-2"><button class="btn-primary mt-4 w-full" onclick="calculateCountdown()">Start Countdown</button><div id="cd_result" class="result-box"></div>`,
-                    time: `<h2 class="text-3xl font-bold text-white mb-4">Time Converter</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><input type="number" id="time_val" class="form-input" placeholder="Enter value"><select id="time_from" class="form-input"><option value="s">Seconds</option><option value="m">Minutes</option><option value="h">Hours</option><option value="d">Days</option></select><select id="time_to" class="form-input"><option value="s">Seconds</option><option value="m">Minutes</option><option value="h">Hours</option><option value="d">Days</option></select></div><button class="btn-primary mt-4 w-full" onclick="convertTime()">Convert</button><div id="time_result" class="result-box text-center text-2xl font-bold"></div>`,
-                    units: `<h2 class="text-3xl font-bold text-white mb-4">Unit Converter</h2><select id="unit_cat" class="form-input mb-4"><option value="temp">Temperature</option><option value="len">Length</option><option value="weight">Weight</option></select><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><input type="number" id="unit_val" class="form-input" placeholder="Enter value"><select id="unit_from" class="form-input"></select><select id="unit_to" class="form-input"></select></div><button class="btn-primary mt-4 w-full" onclick="convertUnit()">Convert</button><div id="unit_result" class="result-box text-center text-2xl font-bold"></div>`,
-                    bmi: `<h2 class="text-3xl font-bold text-white mb-4">BMI Calculator</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="bmi_weight" class="form-input" placeholder="Weight (kg)"><input type="number" id="bmi_height" class="form-input" placeholder="Height (m)"></div><button class="btn-primary mt-4 w-full" onclick="calculateBMI()">Calculate BMI</button><div id="bmi_result" class="result-box"></div>`,
-                    youtube: `<h2 class="text-3xl font-bold text-white mb-2">YouTube Revenue Estimator</h2><p class="text-slate-400 mb-6">Enter views for long-form videos and Shorts to estimate earnings for an Indian audience.</p><div class="space-y-4"><div><label class="font-semibold text-slate-300 mb-2 block">Long-form Video Views</label><input type="number" id="yt_long_views" class="form-input" placeholder="e.g., 100000"></div><div><label class="font-semibold text-slate-300 mb-2 block">Shorts Views</label><input type="number" id="yt_shorts_views" class="form-input" placeholder="e.g., 1000000"></div></div><button class="btn-primary mt-6 w-full" onclick="calculateYT()">Estimate Earnings</button><div id="yt_result" class="result-box"></div>`,
-                    spotify: `<h2 class="text-3xl font-bold text-white mb-2">Spotify Revenue Calculator</h2><p class="text-slate-400 mb-6">Estimate your net earnings after a standard 15% distributor fee.</p><div class="space-y-4"><div><label class="font-semibold text-slate-300 mb-2 block">Number of Streams</label><input type="number" id="spotify_streams" class="form-input" placeholder="e.g., 500000"></div></div><button class="btn-primary mt-6 w-full" onclick="calculateSpotify()">Calculate Net Revenue</button><div id="spotify_result" class="result-box"></div>`,
-                    reels: `<h2 class="text-3xl font-bold text-white mb-2">Instagram Reels Revenue</h2><p class="text-slate-400 mb-6">Provides a rough estimate. Reels monetization is highly variable and not guaranteed.</p><div class="space-y-4"><div><label class="font-semibold text-slate-300 mb-2 block">Number of Reels Views</label><input type="number" id="reels_views" class="form-input" placeholder="e.g., 2000000"></div></div><button class="btn-primary mt-6 w-full" onclick="calculateReels()">Estimate Earnings</button><div id="reels_result" class="result-box"></div>`,
+                    simple: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">Simple Calculator</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="s_num1" class="form-input" placeholder="First number"><input type="number" id="s_num2" class="form-input" placeholder="Second number"></div><div class="flex justify-center gap-3 mt-4">${['+', '-', '*', '/'].map(op => `<button class="btn-primary w-16 h-16 text-2xl" onclick="calculateSimple('${op}')">${op}</button>`).join('')}</div><div id="s_result" class="result-box text-center text-3xl font-bold min-h-[80px] flex items-center justify-center"></div>`,
+                    scientific: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">Scientific Calculator</h2><select id="sci_op" class="form-input mb-4"><option value="sqrt">Square Root (√)</option><option value="pow">Power (x^y)</option><option value="sin">Sine (sin)</option><option value="cos">Cosine (cos)</option><option value="tan">Tangent (tan)</option><option value="log">Logarithm (log10)</option></select><div id="sci_inputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="sci_num1" class="form-input" placeholder="Enter number"><input type="number" id="sci_num2" class="form-input hidden" placeholder="Enter exponent"></div><button class="btn-primary mt-4 w-full" onclick="calculateScientific()">Calculate</button><div id="sci_result" class="result-box text-center text-3xl font-bold min-h-[80px] flex items-center justify-center"></div>`,
+                    simpleInterest: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">Simple Interest</h2><div class="space-y-4"><input type="number" id="si_p" class="form-input" placeholder="Principal Amount ($)"><input type="number" id="si_r" class="form-input" placeholder="Annual Rate (%)"><input type="number" id="si_t" class="form-input" placeholder="Time (Years)"></div><button class="btn-primary mt-4 w-full" onclick="calculateSimpleInterest()">Calculate</button><div id="si_result" class="result-box"></div>`,
+                    compoundInterest: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">Compound Interest</h2><div class="space-y-4"><input type="number" id="ci_p" class="form-input" placeholder="Principal Amount ($)"><input type="number" id="ci_r" class="form-input" placeholder="Annual Rate (%)"><input type="number" id="ci_t" class="form-input" placeholder="Time (Years)"><select id="ci_n" class="form-input"><option value="365">Daily</option><option value="12">Monthly</option><option value="1">Yearly</option></select></div><button class="btn-primary mt-4 w-full" onclick="calculateCompoundInterest()">Calculate</button><div id="ci_result" class="result-box"></div>`,
+                    age: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">Age Calculator</h2><label class="text-slate-400">Enter your date of birth:</label><input type="date" id="age_dob" class="form-input mt-2"><button class="btn-primary mt-4 w-full" onclick="calculateAge()">Calculate Age</button><div id="age_result" class="result-box"></div>`,
+                    countdown: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">Date Countdown</h2><label class="text-slate-400">Select a future date:</label><input type="date" id="cd_date" class="form-input mt-2"><button class="btn-primary mt-4 w-full" onclick="calculateCountdown()">Start Countdown</button><div id="cd_result" class="result-box"></div>`,
+                    time: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">Time Converter</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><input type="number" id="time_val" class="form-input" placeholder="Enter value"><select id="time_from" class="form-input"><option value="s">Seconds</option><option value="m">Minutes</option><option value="h">Hours</option><option value="d">Days</option></select><select id="time_to" class="form-input"><option value="s">Seconds</option><option value="m">Minutes</option><option value="h">Hours</option><option value="d">Days</option></select></div><button class="btn-primary mt-4 w-full" onclick="convertTime()">Convert</button><div id="time_result" class="result-box text-center text-2xl font-bold"></div>`,
+                    units: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">Unit Converter</h2><select id="unit_cat" class="form-input mb-4"><option value="temp">Temperature</option><option value="len">Length</option><option value="weight">Weight</option></select><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><input type="number" id="unit_val" class="form-input" placeholder="Enter value"><select id="unit_from" class="form-input"></select><select id="unit_to" class="form-input"></select></div><button class="btn-primary mt-4 w-full" onclick="convertUnit()">Convert</button><div id="unit_result" class="result-box text-center text-2xl font-bold"></div>`,
+                    bmi: `<h2 class="text-3xl font-bold mb-4 animated-gradient-text">BMI Calculator</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="bmi_weight" class="form-input" placeholder="Weight (kg)"><input type="number" id="bmi_height" class="form-input" placeholder="Height (m)"></div><button class="btn-primary mt-4 w-full" onclick="calculateBMI()">Calculate BMI</button><div id="bmi_result" class="result-box"></div>`,
+                    youtube: `
+                        <h2 class="text-3xl font-bold mb-6 animated-gradient-text">YouTube Revenue Estimator</h2>
+                        <!-- Views to Revenue -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-sky-300 mb-4">1. Estimate Earnings from Views</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="font-medium text-slate-300 mb-2 block">Long-form Video Views</label>
+                                    <input type="number" id="yt_long_views" class="form-input" placeholder="e.g., 100000">
+                                </div>
+                                <div>
+                                    <label class="font-medium text-slate-300 mb-2 block">Shorts Views</label>
+                                    <input type="number" id="yt_shorts_views" class="form-input" placeholder="e.g., 1000000">
+                                </div>
+                            </div>
+                            <button class="btn-primary mt-6 w-full" onclick="calculateYTRevenueFromViews()">Estimate Earnings</button>
+                            <div id="yt_result_from_views" class="result-box"></div>
+                        </div>
+
+                        <hr class="border-slate-600 my-8">
+
+                        <!-- Revenue to Views -->
+                        <div>
+                            <h3 class="text-xl font-semibold text-sky-300 mb-4">2. Estimate Views from Earnings</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="font-medium text-slate-300 mb-2 block">Target Earnings ($)</label>
+                                    <input type="number" id="yt_target_earnings" class="form-input" placeholder="e.g., 100">
+                                </div>
+                            </div>
+                            <button class="btn-primary mt-6 w-full" onclick="calculateYTViewsFromRevenue()">Estimate Views Needed</button>
+                            <div id="yt_result_from_earnings" class="result-box"></div>
+                        </div>`,
+                    spotify: `<h2 class="text-3xl font-bold mb-2 animated-gradient-text">Spotify Revenue Calculator</h2><p class="text-slate-400 mb-6">Estimate your net earnings after a standard 15% distributor fee.</p><div class="space-y-4"><div><label class="font-semibold text-slate-300 mb-2 block">Number of Streams</label><input type="number" id="spotify_streams" class="form-input" placeholder="e.g., 500000"></div></div><button class="btn-primary mt-6 w-full" onclick="calculateSpotify()">Calculate Net Revenue</button><div id="spotify_result" class="result-box"></div>`,
+                    reels: `<h2 class="text-3xl font-bold mb-2 animated-gradient-text">Instagram Reels Revenue</h2><p class="text-slate-400 mb-6">Provides a rough estimate. Reels monetization is highly variable and not guaranteed.</p><div class="space-y-4"><div><label class="font-semibold text-slate-300 mb-2 block">Number of Reels Views</label><input type="number" id="reels_views" class="form-input" placeholder="e.g., 2000000"></div></div><button class="btn-primary mt-6 w-full" onclick="calculateReels()">Estimate Earnings</button><div id="reels_result" class="result-box"></div>`,
                 };
                 return `<div class="calculator-card">${allContent[id]}</div>`;
             }
@@ -232,6 +286,7 @@
             if (el) el.innerHTML = html;
         }
         const formatUSD = (num) => num.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        const formatNum = (num) => num.toLocaleString('en-US');
 
         function calculateSimple(op) {
             const num1 = getVal('s_num1');
@@ -345,20 +400,16 @@
             if (isNaN(val)) { setResult('unit_result', `<span class="text-red-400">Invalid value</span>`); return; }
             let result;
             if (from === to) { result = val; }
-            // Temp
             else if (from === 'c' && to === 'f') result = (val * 9/5) + 32;
             else if (from === 'f' && to === 'c') result = (val - 32) * 5/9;
-            // Length
             else if (from === 'm' && to === 'ft') result = val * 3.28084;
             else if (from === 'ft' && to === 'm') result = val / 3.28084;
             else if (from === 'km' && to === 'mi') result = val * 0.621371;
             else if (from === 'mi' && to === 'km') result = val / 0.621371;
-            // Weight
             else if (from === 'kg' && to === 'lbs') result = val * 2.20462;
             else if (from === 'lbs' && to === 'kg') result = val / 2.20462;
             else if (from === 'g' && to === 'oz') result = val * 0.035274;
             else if (from === 'oz' && to === 'g') result = val / 0.035274;
-            
             setResult('unit_result', `${result.toLocaleString()} ${document.querySelector(`#unit_to option[value=${to}]`).text}`);
         }
 
@@ -374,15 +425,45 @@
             setResult('bmi_result', `<p>Your BMI: <span class="font-bold text-2xl text-sky-400">${bmi.toFixed(1)}</span></p><p>Category: <span class="font-bold ${color}">${category}</span></p>`);
         }
 
-        function calculateYT() {
+        function calculateYTRevenueFromViews() {
             const longViews = getVal('yt_long_views');
             const shortsViews = getVal('yt_shorts_views');
-            const longRpm = 0.30;
-            const shortsRpm = 0.04;
-            const longRevenue = (longViews / 1000) * longRpm;
-            const shortsRevenue = (shortsViews / 1000) * shortsRpm;
-            const totalRevenue = longRevenue + shortsRevenue;
-            setResult('yt_result', `<div class="space-y-3 text-lg"><p>Long-form Video Earnings: <span class="font-bold text-green-400">${formatUSD(longRevenue)}</span></p><p>Shorts Earnings: <span class="font-bold text-yellow-400">${formatUSD(shortsRevenue)}</span></p><hr class="border-slate-600 my-2"><p class="text-xl">Total Estimated Revenue: <span class="font-bold text-sky-400">${formatUSD(totalRevenue)}</span></p></div>`);
+            
+            const longRpm = { low: 0.25, high: 0.80 };
+            const shortsRpm = { low: 0.02, high: 0.06 };
+
+            const lowEst = (longViews / 1000 * longRpm.low) + (shortsViews / 1000 * shortsRpm.low);
+            const highEst = (longViews / 1000 * longRpm.high) + (shortsViews / 1000 * shortsRpm.high);
+
+            setResult('yt_result_from_views', `<div class="space-y-2 text-lg"><p>Estimated Earnings Range:</p><p class="text-2xl font-bold text-sky-400">${formatUSD(lowEst)} - ${formatUSD(highEst)}</p><p class="text-xs text-slate-400 mt-2">Based on typical RPMs for an Indian audience.</p></div>`);
+        }
+
+        function calculateYTViewsFromRevenue() {
+            const target = getVal('yt_target_earnings');
+            if (target <= 0) {
+                setResult('yt_result_from_earnings', `<p class="text-red-400">Please enter a valid target amount.</p>`);
+                return;
+            }
+
+            const longRpm = { low: 0.25, high: 0.80 };
+            const shortsRpm = { low: 0.02, high: 0.06 };
+
+            const longViewsLow = (target / longRpm.high) * 1000;
+            const longViewsHigh = (target / longRpm.low) * 1000;
+            
+            const shortsViewsLow = (target / shortsRpm.high) * 1000;
+            const shortsViewsHigh = (target / shortsRpm.low) * 1000;
+
+            setResult('yt_result_from_earnings', `<div class="space-y-4 text-lg">
+                <div>
+                    <p class="font-semibold text-green-400">For Long-form Videos:</p>
+                    <p>You'll need <span class="font-bold text-white">${formatNum(longViewsLow.toFixed(0))}</span> to <span class="font-bold text-white">${formatNum(longViewsHigh.toFixed(0))}</span> views.</p>
+                </div>
+                <div>
+                    <p class="font-semibold text-yellow-400">For Shorts:</p>
+                    <p>You'll need <span class="font-bold text-white">${formatNum(shortsViewsLow.toFixed(0))}</span> to <span class="font-bold text-white">${formatNum(shortsViewsHigh.toFixed(0))}</span> views.</p>
+                </div>
+            </div>`);
         }
 
         function calculateSpotify() {
@@ -405,3 +486,4 @@
     </script>
 </body>
 </html>
+
