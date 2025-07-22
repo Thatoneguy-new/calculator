@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Calculator Suite</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* Custom Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .calculator-card {
+            background-color: rgba(30, 41, 59, 0.8); /* slate-800 with opacity */
+            backdrop-filter: blur(10px);
+            border: 1px solid #334155; /* slate-700 */
+            border-radius: 0.75rem;
+            padding: 2rem;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .nav-link:hover {
+            background-color: #334155; /* slate-700 */
+            transform: translateX(4px);
+        }
+        .nav-link.active {
+            background-image: linear-gradient(to right, #0ea5e9, #22d3ee);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 14px 0 rgba(0, 118, 255, 0.39);
+        }
+        .form-input {
+            background-color: #334155;
+            border: 1px solid #475569;
+            color: #f1f5f9;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.3);
+        }
+        .btn-primary {
+            background-image: linear-gradient(to right, #0ea5e9, #0284c7);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        }
+        .result-box {
+            background-color: #0f172a;
+            border-image: linear-gradient(to right, #0ea5e9, #22d3ee) 1;
+            border-width: 2px;
+            border-style: solid;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            color: #f1f5f9;
+            animation: resultFadeIn 0.6s ease;
+        }
+        @keyframes resultFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="text-slate-300">
+
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-slate-800/80 backdrop-blur-sm p-4 flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out md:translate-x-0">
+            <h1 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <i class="ph-bold ph-calculator text-sky-400"></i>
+                Calculator Suite
+            </h1>
+            <nav id="nav-menu" class="space-y-1">
+                <!-- Nav items will be injected by JS -->
+            </nav>
+        </aside>
+
+        <!-- Mobile Menu Button -->
+        <button id="menu-toggle" class="fixed top-4 left-4 z-20 p-2 bg-slate-700 rounded-md md:hidden">
+            <i class="ph ph-list text-white text-2xl"></i>
+        </button>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+            <div id="calculator-container" class="max-w-4xl mx-auto">
+                <!-- Calculator content will be injected here -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calculators = [
+                { id: 'simple', name: 'Simple Calculator', icon: 'ph-divide', category: 'General' },
+                { id: 'scientific', name: 'Scientific', icon: 'ph-flask', category: 'General' },
+                { id: 'simpleInterest', name: 'Simple Interest', icon: 'ph-chart-line-up', category: 'Financial' },
+                { id: 'compoundInterest', name: 'Compound Interest', icon: 'ph-chart-pie-slice', category: 'Financial' },
+                { id: 'age', name: 'Age Calculator', icon: 'ph-cake', category: 'Date & Time' },
+                { id: 'countdown', name: 'Date Countdown', icon: 'ph-timer', category: 'Date & Time' },
+                { id: 'time', name: 'Time Converter', icon: 'ph-clock', category: 'Converters' },
+                { id: 'units', name: 'Unit Converter', icon: 'ph-arrows-left-right', category: 'Converters' },
+                { id: 'bmi', name: 'BMI Calculator', icon: 'ph-heartbeat', category: 'Health' },
+                { id: 'youtube', name: 'YouTube Revenue', icon: 'ph-youtube-logo', category: 'Social & Music' },
+                { id: 'spotify', name: 'Spotify Revenue', icon: 'ph-spotify-logo', category: 'Social & Music' },
+                { id: 'reels', name: 'Instagram Reels', icon: 'ph-instagram-logo', category: 'Social & Music' },
+            ];
+
+            const navMenu = document.getElementById('nav-menu');
+            const container = document.getElementById('calculator-container');
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+
+            function createCalculatorUI(id) {
+                const allContent = {
+                    simple: `<h2 class="text-3xl font-bold text-white mb-4">Simple Calculator</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="s_num1" class="form-input" placeholder="First number"><input type="number" id="s_num2" class="form-input" placeholder="Second number"></div><div class="flex justify-center gap-3 mt-4">${['+', '-', '*', '/'].map(op => `<button class="btn-primary w-16 h-16 text-2xl" onclick="calculateSimple('${op}')">${op}</button>`).join('')}</div><div id="s_result" class="result-box text-center text-3xl font-bold min-h-[80px] flex items-center justify-center"></div>`,
+                    scientific: `<h2 class="text-3xl font-bold text-white mb-4">Scientific Calculator</h2><select id="sci_op" class="form-input mb-4"><option value="sqrt">Square Root (√)</option><option value="pow">Power (x^y)</option><option value="sin">Sine (sin)</option><option value="cos">Cosine (cos)</option><option value="tan">Tangent (tan)</option><option value="log">Logarithm (log10)</option></select><div id="sci_inputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="sci_num1" class="form-input" placeholder="Enter number"><input type="number" id="sci_num2" class="form-input hidden" placeholder="Enter exponent"></div><button class="btn-primary mt-4 w-full" onclick="calculateScientific()">Calculate</button><div id="sci_result" class="result-box text-center text-3xl font-bold min-h-[80px] flex items-center justify-center"></div>`,
+                    simpleInterest: `<h2 class="text-3xl font-bold text-white mb-4">Simple Interest</h2><div class="space-y-4"><input type="number" id="si_p" class="form-input" placeholder="Principal Amount ($)"><input type="number" id="si_r" class="form-input" placeholder="Annual Rate (%)"><input type="number" id="si_t" class="form-input" placeholder="Time (Years)"></div><button class="btn-primary mt-4 w-full" onclick="calculateSimpleInterest()">Calculate</button><div id="si_result" class="result-box"></div>`,
+                    compoundInterest: `<h2 class="text-3xl font-bold text-white mb-4">Compound Interest</h2><div class="space-y-4"><input type="number" id="ci_p" class="form-input" placeholder="Principal Amount ($)"><input type="number" id="ci_r" class="form-input" placeholder="Annual Rate (%)"><input type="number" id="ci_t" class="form-input" placeholder="Time (Years)"><select id="ci_n" class="form-input"><option value="365">Daily</option><option value="12">Monthly</option><option value="1">Yearly</option></select></div><button class="btn-primary mt-4 w-full" onclick="calculateCompoundInterest()">Calculate</button><div id="ci_result" class="result-box"></div>`,
+                    age: `<h2 class="text-3xl font-bold text-white mb-4">Age Calculator</h2><label class="text-slate-400">Enter your date of birth:</label><input type="date" id="age_dob" class="form-input mt-2"><button class="btn-primary mt-4 w-full" onclick="calculateAge()">Calculate Age</button><div id="age_result" class="result-box"></div>`,
+                    countdown: `<h2 class="text-3xl font-bold text-white mb-4">Date Countdown</h2><label class="text-slate-400">Select a future date:</label><input type="date" id="cd_date" class="form-input mt-2"><button class="btn-primary mt-4 w-full" onclick="calculateCountdown()">Start Countdown</button><div id="cd_result" class="result-box"></div>`,
+                    time: `<h2 class="text-3xl font-bold text-white mb-4">Time Converter</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><input type="number" id="time_val" class="form-input" placeholder="Enter value"><select id="time_from" class="form-input"><option value="s">Seconds</option><option value="m">Minutes</option><option value="h">Hours</option><option value="d">Days</option></select><select id="time_to" class="form-input"><option value="s">Seconds</option><option value="m">Minutes</option><option value="h">Hours</option><option value="d">Days</option></select></div><button class="btn-primary mt-4 w-full" onclick="convertTime()">Convert</button><div id="time_result" class="result-box text-center text-2xl font-bold"></div>`,
+                    units: `<h2 class="text-3xl font-bold text-white mb-4">Unit Converter</h2><select id="unit_cat" class="form-input mb-4"><option value="temp">Temperature</option><option value="len">Length</option><option value="weight">Weight</option></select><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><input type="number" id="unit_val" class="form-input" placeholder="Enter value"><select id="unit_from" class="form-input"></select><select id="unit_to" class="form-input"></select></div><button class="btn-primary mt-4 w-full" onclick="convertUnit()">Convert</button><div id="unit_result" class="result-box text-center text-2xl font-bold"></div>`,
+                    bmi: `<h2 class="text-3xl font-bold text-white mb-4">BMI Calculator</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="number" id="bmi_weight" class="form-input" placeholder="Weight (kg)"><input type="number" id="bmi_height" class="form-input" placeholder="Height (m)"></div><button class="btn-primary mt-4 w-full" onclick="calculateBMI()">Calculate BMI</button><div id="bmi_result" class="result-box"></div>`,
+                    youtube: `<h2 class="text-3xl font-bold text-white mb-2">YouTube Revenue Estimator</h2><p class="text-slate-400 mb-6">Enter views for long-form videos and Shorts to estimate earnings for an Indian audience.</p><div class="space-y-4"><div><label class="font-semibold text-slate-300 mb-2 block">Long-form Video Views</label><input type="number" id="yt_long_views" class="form-input" placeholder="e.g., 100000"></div><div><label class="font-semibold text-slate-300 mb-2 block">Shorts Views</label><input type="number" id="yt_shorts_views" class="form-input" placeholder="e.g., 1000000"></div></div><button class="btn-primary mt-6 w-full" onclick="calculateYT()">Estimate Earnings</button><div id="yt_result" class="result-box"></div>`,
+                    spotify: `<h2 class="text-3xl font-bold text-white mb-2">Spotify Revenue Calculator</h2><p class="text-slate-400 mb-6">Estimate your net earnings after a standard 15% distributor fee.</p><div class="space-y-4"><div><label class="font-semibold text-slate-300 mb-2 block">Number of Streams</label><input type="number" id="spotify_streams" class="form-input" placeholder="e.g., 500000"></div></div><button class="btn-primary mt-6 w-full" onclick="calculateSpotify()">Calculate Net Revenue</button><div id="spotify_result" class="result-box"></div>`,
+                    reels: `<h2 class="text-3xl font-bold text-white mb-2">Instagram Reels Revenue</h2><p class="text-slate-400 mb-6">Provides a rough estimate. Reels monetization is highly variable and not guaranteed.</p><div class="space-y-4"><div><label class="font-semibold text-slate-300 mb-2 block">Number of Reels Views</label><input type="number" id="reels_views" class="form-input" placeholder="e.g., 2000000"></div></div><button class="btn-primary mt-6 w-full" onclick="calculateReels()">Estimate Earnings</button><div id="reels_result" class="result-box"></div>`,
+                };
+                return `<div class="calculator-card">${allContent[id]}</div>`;
+            }
+
+            function switchCalculator(id) {
+                container.innerHTML = createCalculatorUI(id);
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('active');
+                    if (link.dataset.id === id) link.classList.add('active');
+                });
+                if (id === 'scientific') {
+                    document.getElementById('sci_op').addEventListener('change', (e) => {
+                        document.getElementById('sci_num2').classList.toggle('hidden', e.target.value !== 'pow');
+                    });
+                }
+                if (id === 'units') {
+                    setupUnitConverter();
+                    document.getElementById('unit_cat').addEventListener('change', setupUnitConverter);
+                }
+                if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+            }
+
+            const categories = [...new Set(calculators.map(c => c.category))];
+            categories.forEach(category => {
+                const header = document.createElement('h3');
+                header.className = 'text-xs font-bold text-slate-400 uppercase tracking-wider px-4 pt-4 pb-2';
+                header.textContent = category;
+                navMenu.appendChild(header);
+                calculators.filter(c => c.category === category).forEach(calc => {
+                    const link = document.createElement('a');
+                    link.className = 'nav-link text-slate-300';
+                    link.dataset.id = calc.id;
+                    link.innerHTML = `<i class="ph ${calc.icon} text-xl mr-3"></i> ${calc.name}`;
+                    link.onclick = () => switchCalculator(calc.id);
+                    navMenu.appendChild(link);
+                });
+            });
+
+            menuToggle.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 768 && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.add('-translate-x-full');
+                }
+            });
+
+            switchCalculator('youtube');
+            if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+        });
+
+        // --- Calculation Logic ---
+        function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+        function getStr(id) { return document.getElementById(id).value; }
+        function setResult(id, html) { 
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        }
+        const formatUSD = (num) => num.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+        function calculateSimple(op) {
+            const num1 = getVal('s_num1');
+            const num2 = getVal('s_num2');
+            if (isNaN(num1) || isNaN(num2)) {
+                setResult('s_result', `<span class="text-red-400">Invalid input</span>`);
+                return;
+            }
+            let result;
+            switch (op) {
+                case '+': result = num1 + num2; break;
+                case '-': result = num1 - num2; break;
+                case '*': result = num1 * num2; break;
+                case '/': result = (num2 !== 0) ? num1 / num2 : '<span class="text-red-400 text-sm">Division by zero!</span>'; break;
+            }
+            setResult('s_result', typeof result === 'number' ? result.toLocaleString() : result);
+        }
+
+        function calculateScientific() {
+            const op = getStr('sci_op');
+            const num1 = getVal('sci_num1');
+            if (isNaN(num1) && op !== 'pow') {
+                setResult('sci_result', `<span class="text-red-400">Invalid input</span>`);
+                return;
+            }
+            let result;
+            switch (op) {
+                case 'sqrt': result = num1 >= 0 ? Math.sqrt(num1) : 'Invalid'; break;
+                case 'pow': 
+                    const num2 = getVal('sci_num2');
+                    if (isNaN(num1) || isNaN(num2)) { setResult('sci_result', `<span class="text-red-400">Invalid input</span>`); return; }
+                    result = Math.pow(num1, num2); break;
+                case 'sin': result = Math.sin(num1 * Math.PI / 180); break;
+                case 'cos': result = Math.cos(num1 * Math.PI / 180); break;
+                case 'tan': result = Math.tan(num1 * Math.PI / 180); break;
+                case 'log': result = num1 > 0 ? Math.log10(num1) : 'Invalid'; break;
+            }
+             setResult('sci_result', typeof result === 'number' ? result.toLocaleString() : result);
+        }
+
+        function calculateSimpleInterest() {
+            const p = getVal('si_p'), r = getVal('si_r'), t = getVal('si_t');
+            if (p <= 0 || r <= 0 || t <= 0) { setResult('si_result', `<p class="text-red-400">Please fill all fields correctly.</p>`); return; }
+            const interest = (p * r * t) / 100;
+            const total = p + interest;
+            setResult('si_result', `<p>Interest: <span class="font-bold text-green-400">${formatUSD(interest)}</span></p><p>Total Amount: <span class="font-bold text-sky-400">${formatUSD(total)}</span></p>`);
+        }
+        
+        function calculateCompoundInterest() {
+            const p = getVal('ci_p'), r = getVal('ci_r'), t = getVal('ci_t'), n = getVal('ci_n');
+            if (p <= 0 || r <= 0 || t <= 0) { setResult('ci_result', `<p class="text-red-400">Please fill all fields correctly.</p>`); return; }
+            const rate = r / 100;
+            const amount = p * Math.pow(1 + (rate / n), n * t);
+            const interest = amount - p;
+            setResult('ci_result', `<p>Interest: <span class="font-bold text-green-400">${formatUSD(interest)}</span></p><p>Total Amount: <span class="font-bold text-sky-400">${formatUSD(amount)}</span></p>`);
+        }
+
+        function calculateAge() {
+            const dobStr = getStr('age_dob');
+            if (!dobStr) { setResult('age_result', `<p class="text-red-400">Please select a date.</p>`); return; }
+            const dob = new Date(dobStr);
+            const now = new Date();
+            let years = now.getFullYear() - dob.getFullYear();
+            let months = now.getMonth() - dob.getMonth();
+            let days = now.getDate() - dob.getDate();
+            if (days < 0) { months--; days += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+            if (months < 0) { years--; months += 12; }
+            setResult('age_result', `<p>You are <span class="font-bold text-sky-400">${years}</span> years, <span class="font-bold text-sky-400">${months}</span> months, and <span class="font-bold text-sky-400">${days}</span> days old.</p>`);
+        }
+
+        function calculateCountdown() {
+            const futureStr = getStr('cd_date');
+            if (!futureStr) { setResult('cd_result', `<p class="text-red-400">Please select a date.</p>`); return; }
+            const futureDate = new Date(futureStr);
+            const now = new Date();
+            const diff = futureDate.getTime() - now.getTime();
+            if (diff < 0) { setResult('cd_result', `<p class="text-red-400">The date is in the past.</p>`); return; }
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            setResult('cd_result', `<p class="text-2xl text-center"><span class="font-bold text-sky-400">${days}</span> days, <span class="font-bold text-sky-400">${hours}</span> hours, <span class="font-bold text-sky-400">${minutes}</span> minutes</p>`);
+        }
+        
+        function convertTime() {
+            const val = getVal('time_val');
+            const from = getStr('time_from');
+            const to = getStr('time_to');
+            if (isNaN(val)) { setResult('time_result', `<span class="text-red-400">Invalid value</span>`); return; }
+            const rates = { s: 1, m: 60, h: 3600, d: 86400 };
+            const seconds = val * rates[from];
+            const result = seconds / rates[to];
+            setResult('time_result', `${result.toLocaleString()} ${document.querySelector(`#time_to option[value=${to}]`).text}`);
+        }
+
+        function setupUnitConverter() {
+            const category = getStr('unit_cat');
+            const fromSelect = document.getElementById('unit_from');
+            const toSelect = document.getElementById('unit_to');
+            const options = {
+                temp: [['c', 'Celsius'], ['f', 'Fahrenheit']],
+                len: [['m', 'Meters'], ['ft', 'Feet'], ['km', 'Kilometers'], ['mi', 'Miles']],
+                weight: [['kg', 'Kilograms'], ['lbs', 'Pounds'], ['g', 'Grams'], ['oz', 'Ounces']]
+            };
+            fromSelect.innerHTML = toSelect.innerHTML = options[category].map(o => `<option value="${o[0]}">${o[1]}</option>`).join('');
+        }
+
+        function convertUnit() {
+            const val = getVal('unit_val');
+            const from = getStr('unit_from');
+            const to = getStr('unit_to');
+            if (isNaN(val)) { setResult('unit_result', `<span class="text-red-400">Invalid value</span>`); return; }
+            let result;
+            if (from === to) { result = val; }
+            // Temp
+            else if (from === 'c' && to === 'f') result = (val * 9/5) + 32;
+            else if (from === 'f' && to === 'c') result = (val - 32) * 5/9;
+            // Length
+            else if (from === 'm' && to === 'ft') result = val * 3.28084;
+            else if (from === 'ft' && to === 'm') result = val / 3.28084;
+            else if (from === 'km' && to === 'mi') result = val * 0.621371;
+            else if (from === 'mi' && to === 'km') result = val / 0.621371;
+            // Weight
+            else if (from === 'kg' && to === 'lbs') result = val * 2.20462;
+            else if (from === 'lbs' && to === 'kg') result = val / 2.20462;
+            else if (from === 'g' && to === 'oz') result = val * 0.035274;
+            else if (from === 'oz' && to === 'g') result = val / 0.035274;
+            
+            setResult('unit_result', `${result.toLocaleString()} ${document.querySelector(`#unit_to option[value=${to}]`).text}`);
+        }
+
+        function calculateBMI() {
+            const w = getVal('bmi_weight'), h = getVal('bmi_height');
+            if (w <= 0 || h <= 0) { setResult('bmi_result', `<p class="text-red-400">Enter valid weight and height.</p>`); return; }
+            const bmi = w / (h * h);
+            let category, color;
+            if (bmi < 18.5) { category = 'Underweight'; color = 'text-blue-400'; }
+            else if (bmi < 25) { category = 'Normal weight'; color = 'text-green-400'; }
+            else if (bmi < 30) { category = 'Overweight'; color = 'text-yellow-400'; }
+            else { category = 'Obesity'; color = 'text-red-400'; }
+            setResult('bmi_result', `<p>Your BMI: <span class="font-bold text-2xl text-sky-400">${bmi.toFixed(1)}</span></p><p>Category: <span class="font-bold ${color}">${category}</span></p>`);
+        }
+
+        function calculateYT() {
+            const longViews = getVal('yt_long_views');
+            const shortsViews = getVal('yt_shorts_views');
+            const longRpm = 0.30;
+            const shortsRpm = 0.04;
+            const longRevenue = (longViews / 1000) * longRpm;
+            const shortsRevenue = (shortsViews / 1000) * shortsRpm;
+            const totalRevenue = longRevenue + shortsRevenue;
+            setResult('yt_result', `<div class="space-y-3 text-lg"><p>Long-form Video Earnings: <span class="font-bold text-green-400">${formatUSD(longRevenue)}</span></p><p>Shorts Earnings: <span class="font-bold text-yellow-400">${formatUSD(shortsRevenue)}</span></p><hr class="border-slate-600 my-2"><p class="text-xl">Total Estimated Revenue: <span class="font-bold text-sky-400">${formatUSD(totalRevenue)}</span></p></div>`);
+        }
+
+        function calculateSpotify() {
+            const streams = getVal('spotify_streams');
+            const ratePerStream = 0.0008;
+            const distributorCut = 0.15;
+            const grossRevenue = streams * ratePerStream;
+            const netRevenue = grossRevenue * (1 - distributorCut);
+            setResult('spotify_result', `<div class="space-y-3 text-lg"><p>Gross Revenue (before cut): <span class="font-bold text-yellow-400">${formatUSD(grossRevenue)}</span></p><p>Net Revenue (after 15% cut): <span class="font-bold text-green-400">${formatUSD(netRevenue)}</span></p></div>`);
+        }
+
+        function calculateReels() {
+            const views = getVal('reels_views');
+            const lowRpm = 0.02;
+            const highRpm = 0.04;
+            const lowEst = (views / 1000) * lowRpm;
+            const highEst = (views / 1000) * highRpm;
+            setResult('reels_result', `<div class="space-y-3 text-lg"><p>Estimated Range: <span class="font-bold text-sky-400">${formatUSD(lowEst)} - ${formatUSD(highEst)}</span></p><p class="text-sm text-slate-400 mt-4"><strong>Disclaimer:</strong> Instagram Reels monetization (like the former Bonus program) is inconsistent and varies greatly. This is a speculative estimate only.</p></div>`);
+        }
+    </script>
+</body>
+</html>
